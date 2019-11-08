@@ -3,7 +3,8 @@ MAINTAINER SuperFlyXXI <superflyxxi@yahoo.com>
 
 RUN apk add --no-cache dcron
 
-ADD entrypoint.sh /
+RUN rm /usr/local/apache2/htdocs/index.html
 
+ADD entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
 
