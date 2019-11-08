@@ -1,0 +1,23 @@
+language: minimal
+
+env:
+  global:
+    - THIS_DOCKER_REGISTRY=superflyxxi.dlinkddns.com:5000
+    - THIS_DOCKER_REPO=superflyxxi
+    - THIS_DOCKER_LABEL=${TRAVIS_BRANCH}
+
+before_script:
+  - sudo apt-get install -y jq
+  - sudo cat /etc/docker/daemon.json
+  - sudo cat /etc/docker/daemon.json | jq ". + {\"insecure-registries\":[\"${THIS_DOCKER_REGISTRY}\"] }" | sudo tee /etc/docker/daemon.json
+  - sudo cat /etc/docker/daemon.json
+  - sudo service docker restart
+  - echo ${THIS_DOCKER_REGISTRY_PASSWORD} | docker login --username ${THIS_DOCKER_REGISTRY_USERNAME} --password-stdin ${THIS_DOCKER_REGISTRY}
+
+script:
+   - echo "docker build -t httpd-cron:build"
+
+after_success:
+   - echo "docker tag httpd-cron:build ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL}"
+   - echo "docker push ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL}"
+
