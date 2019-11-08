@@ -15,9 +15,17 @@ before_script:
   - echo ${THIS_DOCKER_REGISTRY_PASSWORD} | docker login --username ${THIS_DOCKER_REGISTRY_USERNAME} --password-stdin ${THIS_DOCKER_REGISTRY}
 
 script:
-   - docker build -t httpd-cron:build .
+  - docker build -t httpd-cron:build .
 
 after_success:
-   - docker tag httpd-cron:build ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL}
-   - docker push ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL}
+  - docker tag httpd-cron:build ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL}
+  - docker push ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL}
+
+deploy:
+  provider: script
+  script:
+    - docker tag ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL} ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:latest
+    - docker push ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:latest
+  on:
+    tags: true
 
