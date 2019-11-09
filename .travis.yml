@@ -21,12 +21,8 @@ script:
 after_success:
   - docker tag httpd-cron:build ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL}
   - docker push ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL}
-
-deploy:
-  provider: script
-  script:
-    - docker tag ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL} ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:latest
-    - docker push ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:latest
-  on:
-    tags: true
+  - if [[ ! -z "${TRAVIS_TAG}" ]]; then
+        docker tag httpd-cron:build ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:latest;
+        docker push ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:latest;
+    fi
 
