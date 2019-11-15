@@ -10,6 +10,7 @@ before_script:
   - sudo apt-get install -y jq
   - sudo service docker stop
   - sudo cat /etc/docker/daemon.json
+  - sudo cat /etc/docker/daemon.json | jq ". + {\"insecure-registries\":[\"${THIS_DOCKER_REGISTRY}\"] }"
   - sudo cat /etc/docker/daemon.json | jq ". + {\"insecure-registries\":[\"${THIS_DOCKER_REGISTRY}\"] }" | sudo tee /etc/docker/daemon.json
   - sudo cat /etc/docker/daemon.json
   - sudo service docker start
