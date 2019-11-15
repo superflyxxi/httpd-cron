@@ -6,16 +6,17 @@ env:
     - THIS_DOCKER_REPO=superflyxxi
     - THIS_DOCKER_LABEL=${TRAVIS_BRANCH}
 
-before_script:
-  - sudo apt-get install -y jq
-# Download cert from this registry
+before_install:
   - sudo mkdir -p "/etc/docker/certs.d/${THIS_DOCKER_REGISTRY}"
   - openssl s_client -showcerts -connect ${THIS_DOCKER_REGISTRY} < /dev/null 2> /dev/null | openssl x509 -outform PEM | sudo tee "/etc/docker/certs.d/${THIS_DOCKER_REGISTRY}/ca.crt"
   - echo ${THIS_DOCKER_REGISTRY_PASSWORD} | docker login --username ${THIS_DOCKER_REGISTRY_USERNAME} --password-stdin ${THIS_DOCKER_REGISTRY}
+
+install:
   - if [[ ! ${TRAVIS_BRANCH} =~ (master|v.*) ]]; then
      export CACHE_FROM_ARGS="--cache-from ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:master";
      docker pull ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:master || true;
     fi
+
 
 script:
   - cd ${TRAVIS_BUILD_DIR}/src/
