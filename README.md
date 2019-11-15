@@ -10,7 +10,7 @@ and post to the publich html directory for results.
 
 ## Example run
 ```sh
-docker run --rm -it -p 80:80 -v "`pwd`/crontab.txt:/var/spool/cron/crontabs/root:ro" image
+docker run --rm -it -p 80:80 -v "`pwd`/crontab.txt:/etc/crontabs/root:ro" image
 ```
 
 
