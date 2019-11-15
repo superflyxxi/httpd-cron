@@ -6,17 +6,23 @@ env:
     - THIS_DOCKER_REPO=superflyxxi
     - THIS_DOCKER_LABEL=${TRAVIS_BRANCH}
 
-before_script:
-  - sudo apt-get install -y jq
-  - sudo service docker stop
-  - sudo cat /etc/docker/daemon.json
-  - sudo cat /etc/docker/daemon.json | jq ". + {\"insecure-registries\":[\"${THIS_DOCKER_REGISTRY}\"] }" | sudo tee /etc/docker/daemon.json
-  - sudo cat /etc/docker/daemon.json
-  - sudo service docker start
+before_install:
+  - sudo mkdir -p "/etc/docker/certs.d/${THIS_DOCKER_REGISTRY}"
+  - openssl s_client -showcerts -connect ${THIS_DOCKER_REGISTRY} < /dev/null 2> /dev/null | openssl x509 -outform PEM | sudo tee "/etc/docker/certs.d/${THIS_DOCKER_REGISTRY}/ca.crt"
   - echo ${THIS_DOCKER_REGISTRY_PASSWORD} | docker login --username ${THIS_DOCKER_REGISTRY_USERNAME} --password-stdin ${THIS_DOCKER_REGISTRY}
 
+install:
+  - if [[ ! ${TRAVIS_BRANCH} =~ (master|v.*) ]]; then
+     export CACHE_FROM_ARGS="--cache-from ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:master";
+     docker pull ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:master || true;
+    fi
+
 script:
-  - docker build -t httpd-cron:build .
+  - cd ${TRAVIS_BUILD_DIR}/src/
+  - docker build -t httpd-cron:build ${CACHE_FROM_ARGS} .
+  - cd ${TRAVIS_BUILD_DIR}/tests/
+  - sudo chown root:root crontab
+  - bash ./runTests.sh
 
 after_success:
   - docker tag httpd-cron:build ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL}

@@ -8,6 +8,7 @@ HEALTHCHECK --interval=1m --timeout=10s \
 
 RUN rm /usr/local/apache2/htdocs/index.html
 
-ADD entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
+
+ADD entrypoint.sh /
 

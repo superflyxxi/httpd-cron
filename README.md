@@ -2,6 +2,9 @@
 This code will provide a docker image that will host cron and httpd. This way you can have your scripts run periodically
 and post to the publich html directory for results.
 
+The crontab provided via volumes should be owned by root before mounting. Alternatively, building images and adding 
+files should be fine.
+
 # Example
 ## Sample cron
 ```
@@ -10,7 +13,7 @@ and post to the publich html directory for results.
 
 ## Example run
 ```sh
-docker run --rm -it -p 80:80 -v "`pwd`/crontab.txt:/var/spool/cron/crontabs/root:ro" image
+docker run --rm -it -p 80:80 -v "`pwd`/crontab.txt:/etc/crontabs/root:ro" image
 ```
 
 
