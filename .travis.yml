@@ -12,10 +12,14 @@ before_script:
   - sudo mkdir -p "/etc/docker/certs.d/${THIS_DOCKER_REGISTRY}"
   - openssl s_client -showcerts -connect ${THIS_DOCKER_REGISTRY} < /dev/null 2> /dev/null | openssl x509 -outform PEM | sudo tee "/etc/docker/certs.d/${THIS_DOCKER_REGISTRY}/ca.crt"
   - echo ${THIS_DOCKER_REGISTRY_PASSWORD} | docker login --username ${THIS_DOCKER_REGISTRY_USERNAME} --password-stdin ${THIS_DOCKER_REGISTRY}
+  - if [[ ! ${TRAVIS_BRANCH} =~ (master|v.*) ]]; then
+     export CACHE_FROM_ARGS="--cache-from ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:master";
+     docker pull ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:master;
+    fi
 
 script:
   - cd ${TRAVIS_BUILD_DIR}/src/
-  - docker build -t httpd-cron:build .
+  - docker build -t httpd-cron:build ${CACHE_FROM_ARGS} .
   - cd ${TRAVIS_BUILD_DIR}/tests/
   - sudo chown root:root crontab
   - bash ./runTests.sh
