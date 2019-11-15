@@ -9,7 +9,7 @@ log "Running docker"
 docker run --rm -d --name test -v "`pwd`/crontab:/etc/crontabs/root:ro" -v "`pwd`/cron.log:/var/log/cron.log" -v "`pwd`/minute.log:/home/test/minute.log" httpd-cron:build
 
 log "Sleeping for 1 minute(s)"
-date && sleep 1m && date
+sleep 1m
 
 log "Validating test"
 LINES=$(wc -l < ./minute.log)
