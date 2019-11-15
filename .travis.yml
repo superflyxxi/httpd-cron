@@ -11,6 +11,7 @@ before_script:
   - sudo service docker stop
   - sudo cat /etc/docker/daemon.json
   - sudo cat /etc/docker/daemon.json | jq ". + {\"insecure-registries\":[\"${THIS_DOCKER_REGISTRY}\"] }"
+  - sudo jq ". + {\"insecure-registries\":[\"${THIS_DOCKER_REGISTRY}\"] }" /etc/docker/daemon.json 
   - sudo cat /etc/docker/daemon.json | jq ". + {\"insecure-registries\":[\"${THIS_DOCKER_REGISTRY}\"] }" | sudo tee /etc/docker/daemon.json
   - sudo cat /etc/docker/daemon.json
   - sudo service docker start
