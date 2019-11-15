@@ -12,7 +12,7 @@ if [[ ${SECONDS_BEFORE_START} -gt 50 ]]; then
 fi
 
 log "Running docker"
-docker run --rm -d --name test -v "`pwd`/crontab:/etc/crontabs/root:ro" -v "`pwd`/cron.log:/var/log/cron.log" -v "`pwd`/minute.log:/home/test/minute.log" httpd-cron:build
+docker run --rm -d --init --name test -v "`pwd`/crontab:/etc/crontabs/root:ro" -v "`pwd`/cron.log:/var/log/cron.log" -v "`pwd`/minute.log:/home/test/minute.log" httpd-cron:build
 
 # 60 minus number of seconds past 00... +  5 seconds for buffer
 SECONDS_TO_SLEEP=$((65 - $(date +%s) % 60))
