@@ -9,6 +9,7 @@ env:
 before_script:
   - sudo apt-get install -y jq
   - sudo service docker stop
+  - sudo ls -lha /etc/docker/daemon.json
   - sudo cat /etc/docker/daemon.json
   - sudo cat /etc/docker/daemon.json | jq ". + {\"insecure-registries\":[\"${THIS_DOCKER_REGISTRY}\"] }"
   - sudo bash -c "jq \". + {\\\"insecure-registries\\\":[\\\"${THIS_DOCKER_REGISTRY}\\\"] }\" /etc/docker/daemon.json" 
@@ -16,6 +17,7 @@ before_script:
   - sudo jq ". + {\"insecure-registries\":[\"${THIS_DOCKER_REGISTRY}\"] }" /etc/docker/daemon.json
   - sudo jq ". + {\"insecure-registries\":[\"${THIS_DOCKER_REGISTRY}\"] }" /etc/docker/daemon.json | sudo tee /etc/docker/daemon.json
 #  - sudo cat /etc/docker/daemon.json | jq ". + {\"insecure-registries\":[\"${THIS_DOCKER_REGISTRY}\"] }" | sudo tee /etc/docker/daemon.json
+  - sudo ls -lha /etc/docker/daemon.json
   - sudo cat /etc/docker/daemon.json
   - sudo service docker start
   - echo ${THIS_DOCKER_REGISTRY_PASSWORD} | docker login --username ${THIS_DOCKER_REGISTRY_USERNAME} --password-stdin ${THIS_DOCKER_REGISTRY}
