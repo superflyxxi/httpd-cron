@@ -1,27 +1,26 @@
 touch cron.log
 touch minute.log
-echo "Running docker"
+
+log() {
+	echo $(date -Iseconds) "$1"
+}
+
+log "Running docker"
 docker run --rm -d --name test -v "`pwd`/crontab:/etc/crontabs/root:ro" -v "`pwd`/cron.log:/var/log/cron.log" -v "`pwd`/minute.log:/home/test/minute.log" httpd-cron:build
-echo "Sleeping for 1 minute(s)"
-date
-sleep 1m
-date
-echo "View docker logs"
-docker logs test
-docker stop test
 
-echo "Viewing cron logs"
-cat ./cron.log
+log "Sleeping for 1 minute(s)"
+date && sleep 1m && date
 
-echo "Validating test"
-echo "Actual output"
-cat ./minute.log
-echo "Number of lines"
+log "Validating test"
 LINES=$(wc -l < ./minute.log)
 if [[ ${LINES} -eq 1 ]]; then
-	echo "PASS: Perfection (${LINES})"
+	log "PASS: Perfection (${LINES})"
 else
-	echo "FAIL: Expected 1 line, but got ${LINES}"
+	log "FAIL: Expected 1 line, but got ${LINES}"
+	log "Cron logs"
+	cat ./cron.log
+	log "Test results"
+	cat ./minute.log
 	exit 1
 fi
 
