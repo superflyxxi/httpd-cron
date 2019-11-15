@@ -17,6 +17,7 @@ script:
   - cd ${TRAVIS_BUILD_DIR}/src/
   - docker build -t httpd-cron:build .
   - cd ${TRAVIS_BUILD_DIR}/tests/
+  - sudo chown root:root crontab
   - bash ./runTests.sh
 
 after_success:
