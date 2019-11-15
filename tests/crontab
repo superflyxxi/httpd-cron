@@ -1,1 +1,2 @@
-* * * * * echo "Test every minute" >> /home/test/minute.log
+# minute hour dayOfMonth monthOfYear (1=mon; 7=sun) dayOfWeek
+*	*	*	*	*	echo "Test every minute" >> /home/test/minute.log
