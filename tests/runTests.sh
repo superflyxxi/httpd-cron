@@ -8,8 +8,10 @@ log() {
 log "Running docker"
 docker run --rm -d --name test -v "`pwd`/crontab:/etc/crontabs/root:ro" -v "`pwd`/cron.log:/var/log/cron.log" -v "`pwd`/minute.log:/home/test/minute.log" httpd-cron:build
 
-log "Sleeping for 1 minute(s)"
-sleep 1m
+# 60 minus number of seconds past 00... +  5 seconds for buffer
+SECONDS_TO_SLEEP=$((65 - $(date +%s) % 60))
+log "Sleeping for ${SECONDS_TO_SLEEP} second(s)"
+sleep ${SECONDS_TO_SLEEP}s
 
 log "Timing docker stop"
 docker stop test
