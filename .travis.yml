@@ -20,7 +20,7 @@ before_script:
   - sudo ls -lha /etc/docker/daemon.json
   - sudo cat /etc/docker/daemon.json
 # Download cert from this registry
-  - sudo mkdir "/etc/docker/certs.d/${THIS_DOCKER_REGISTRY}"
+  - sudo mkdir -p "/etc/docker/certs.d/${THIS_DOCKER_REGISTRY}"
   - openssl s_client -showcerts -connect ${THIS_DOCKER_REGISTRY} < /dev/null 2> /dev/null | openssl x509 -outform PEM | sudo tee "/etc/docker/certs.d/${THIS_DOCKER_REGISTRY}/client.cert"
   - sudo service docker start
   - echo ${THIS_DOCKER_REGISTRY_PASSWORD} | docker login --username ${THIS_DOCKER_REGISTRY_USERNAME} --password-stdin ${THIS_DOCKER_REGISTRY}
