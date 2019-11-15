@@ -11,6 +11,10 @@ docker run --rm -d --name test -v "`pwd`/crontab:/etc/crontabs/root:ro" -v "`pwd
 log "Sleeping for 1 minute(s)"
 sleep 1m
 
+log "Timing docker stop"
+docker stop test
+log "Done stopping docker"
+
 log "Validating test"
 LINES=$(wc -l < ./minute.log)
 if [[ ${LINES} -eq 1 ]]; then
