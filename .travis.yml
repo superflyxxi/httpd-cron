@@ -16,6 +16,8 @@ before_script:
 script:
   - cd ${TRAVIS_BUILD_DIR}/src/
   - docker build -t httpd-cron:build .
+  - cd ${TRAVIS_BUILD_DIR}/tests/
+  - ./runTests.sh
 
 after_success:
   - docker tag httpd-cron:build ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:${THIS_DOCKER_LABEL}
