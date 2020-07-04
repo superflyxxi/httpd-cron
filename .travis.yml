@@ -2,7 +2,6 @@ language: minimal
 
 env:
   global:
-    - THIS_DOCKER_REGISTRY=superflyxxi.dlinkddns.com:5000
     - THIS_DOCKER_REPO=superflyxxi
     - THIS_DOCKER_LABEL=${TRAVIS_BRANCH}
 
