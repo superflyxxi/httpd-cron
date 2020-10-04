@@ -1,4 +1,10 @@
 #!/bin/sh
+
+if [[ -x "/before_entrypoint.sh" ]]; then
+	echo "Executing before entrypoint"
+	/before_entrypoint.sh
+fi
+	
 echo "Starting cron server"
 crond -b -L /var/log/cron.log -l 7
 
