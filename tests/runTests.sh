@@ -5,6 +5,7 @@ log() {
 	echo $(date -Iseconds) "$1"
 }
 
+TEST_IMAGE=${TEST_IMAGE:-httpd-cron:build}
 SECONDS_BEFORE_START=$(($(date +%s) % 60))
 if [[ ${SECONDS_BEFORE_START} -gt 50 ]]; then
 	log "There's less than 10 seconds before start of next minute. Sleepin for 15 seconds."
@@ -12,7 +13,7 @@ if [[ ${SECONDS_BEFORE_START} -gt 50 ]]; then
 fi
 
 log "Running docker"
-docker run --rm -d --init --name test -v "`pwd`/crontab:/etc/crontabs/root:ro" -v "`pwd`/cron.log:/var/log/cron.log" -v "`pwd`/minute.log:/home/test/minute.log" httpd-cron:build
+docker run --rm -d --init --name test -v "`pwd`/crontab:/etc/crontabs/root:ro" -v "`pwd`/cron.log:/var/log/cron.log" -v "`pwd`/minute.log:/home/test/minute.log" ${TEST_IMAGE}
 
 # 60 minus number of seconds past 00... +  5 seconds for buffer
 SECONDS_TO_SLEEP=$((65 - $(date +%s) % 60))
