@@ -35,14 +35,14 @@ jobs:
           image: ${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}
           tag: ${THIS_DOCKER_LABEL}
           registry: ${THIS_DOCKER_REGISTRY}
-          extra_build_args: --build-arg BUILD_IMAGE=${THIS_REGISTRY}/${THIS_IMAGE}:${THIS_LABEL}a
+          extra_build_args: --build-arg BUILD_IMAGE=${THIS_REGISTRY}/${THIS_IMAGE}:${THIS_DOCKER_LABEL}
           cache_from: ${CACHE_FROM_IMAGE}
           step-name: Build docker image
       - run:
           name: Run tests
           command: |
             cd tests/
-            TEST_IMAGE=${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:${THIS_LABEL} ./runTests.sh
+            TEST_IMAGE=${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ./runTests.sh
       #- store_test_results:
           #path: testResults
       #- store_artifacts:
@@ -51,7 +51,7 @@ jobs:
           step-name: Pushing actual image
           registry: $THIS_DOCKER_REGISTRY
           image: ${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}
-          tag: ${THIS_THIS_LABEL}
+          tag: ${THIS_DOCKER_LABEL}
 
 workflows:
   default:
