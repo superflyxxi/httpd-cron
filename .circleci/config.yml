@@ -42,7 +42,7 @@ jobs:
           name: Run tests
           command: |
             cd tests/
-            chown root:root crontab
+            sudo chown root:root crontab
             TEST_IMAGE=${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ./runTests.sh
       #- store_test_results:
           #path: testResults
