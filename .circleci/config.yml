@@ -19,6 +19,8 @@ jobs:
             echo 'export THIS_DOCKER_LABEL=${CIRCLE_BRANCH}' >> ${BASH_ENV}
             if [[ ! "${CIRCLE_BRANCH}" == "master" ]] && [[ ! ${CIRCLE_BRANCH} == v* ]]; then
               echo 'export CACHE_FROM_IMAGE=${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:master' >> ${BASH_ENV}
+            else
+              echo 'export CACHE_FROM_IMAGE=httpd:alpine' >> ${BASH_ENV}
             fi
             cat ${BASH_ENV}
       - docker/check:
