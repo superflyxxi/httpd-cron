@@ -6,19 +6,20 @@ orbs:
 
 # Orchestrate or schedule a set of jobs
 jobs:
-  build:
+  build-test-push:
     environment:
       THIS_DOCKER_REPO: superflyxxi
       THIS_DOCKER_IMAGE: httpd-cron
-      
     machine: true
     steps:
+      - attach_workspace:
+          at: /tmp/workspace
       - run:
           name: Custom enviroment variables
           command: |
-            echo 'export THIS_DOCKER_LABEL=${CIRCLE_BRANCH}' >> ${BASH_ENV}
+            echo 'export THIS_DOCKER_LABEL=$(cat /tmp/workspace/version.txt)' >> ${BASH_ENV}
             if [[ ! "${CIRCLE_BRANCH}" == "master" ]] && [[ ! ${CIRCLE_BRANCH} == v* ]]; then
-              echo 'export CACHE_FROM_IMAGE=${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:master' >> ${BASH_ENV}
+              echo 'export CACHE_FROM_IMAGE=${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:latest' >> ${BASH_ENV}
             else
               echo 'export CACHE_FROM_IMAGE=httpd:alpine' >> ${BASH_ENV}
             fi
@@ -46,17 +47,70 @@ jobs:
             cd tests/
             sudo chown root:root crontab
             TEST_IMAGE=${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ./runTests.sh
-      #- store_test_results:
-          #path: testResults
-      #- store_artifacts:
-          #path: testResults
+      - when:
+          condition:
+            equal: [ master, << pipeline.git.branch >> ]
+          steps:
+            - run:
+                name: Tag image as latest
+                command: docker tag ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:latest
+            - docker/push:
+                step-name: Pushing latest image
+                registry: $THIS_DOCKER_REGISTRY
+                image: ${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}
+                tag: latest
       - docker/push:
           step-name: Pushing actual image
           registry: $THIS_DOCKER_REGISTRY
           image: ${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}
           tag: ${THIS_DOCKER_LABEL}
+  release:
+    docker:
+      - image: circleci/node
+    parameters:
+      prerelease:
+        description: Whether it's a pre-release and not actually release.
+        type: boolean
+        default: false
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm install -D @semantic-release/exec
+      - attach_workspace:
+          at: /tmp/workspace
+      - when:
+          condition: << parameters.prerelease >>
+          steps:
+            run:
+              name: Define additional args
+              command: |
+                echo "ADDITIONAL_ARGS=--dry-run" >> ${BASH_ENV}
+      - run:
+          name: Run semantic-release
+          command: |
+            npx semantic-release ${ADDITIONAL_ARGS}
+            if [[ -f version.txt ]]; then 
+              cp -v version.txt /tmp/workspace
+            else
+              echo "${CIRCLE_BRANCH}" > /tmp/workspace/version.txt
+            fi
+            echo "Version: $(cat /tmp/workspace/version.txt)"
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - version.txt
 
 workflows:
   default:
     jobs:
-      - build
+      - release:
+          name: pre-release
+          prerelease: true
+      - build-test-push:
+          requires:
+            - pre-release
+      - release:
+          name: release
+          prerelease: false
+          requires:
+            - build-test-push
