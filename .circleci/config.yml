@@ -8,7 +8,6 @@ orbs:
 jobs:
   build-test-push:
     environment:
-      THIS_DOCKER_REPO: superflyxxi
       THIS_DOCKER_IMAGE: httpd-cron
     machine: true
     steps:
@@ -19,15 +18,13 @@ jobs:
           command: |
             echo 'export THIS_DOCKER_LABEL=$(cat /tmp/workspace/version.txt)' >> ${BASH_ENV}
             if [[ ! "${CIRCLE_BRANCH}" == "master" ]] && [[ ! ${CIRCLE_BRANCH} == v* ]]; then
-              echo 'export CACHE_FROM_IMAGE=${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:latest' >> ${BASH_ENV}
+              echo 'export CACHE_FROM_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest' >> ${BASH_ENV}
             else
               echo 'export CACHE_FROM_IMAGE=httpd:alpine' >> ${BASH_ENV}
             fi
             cat ${BASH_ENV}
       - docker/check:
-          docker-username: THIS_DOCKER_REGISTRY_USERNAME
-          docker-password: THIS_DOCKER_REGISTRY_PASSWORD
-          registry: $THIS_DOCKER_REGISTRY
+          registry: $DOCKER_REGISTRY
       - docker/pull:
           images: httpd:alpine,${CACHE_FROM_IMAGE}
           ignore-docker-pull-error: true
@@ -35,9 +32,9 @@ jobs:
       - docker/build:
           docker-context: src/
           path: src/
-          image: ${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}
+          image: ${THIS_DOCKER_IMAGE}
           tag: ${THIS_DOCKER_LABEL}
-          registry: ${THIS_DOCKER_REGISTRY}
+          registry: ${DOCKER_REGISTRY}
           extra_build_args: --build-arg BUILD_IMAGE=${THIS_REGISTRY}/${THIS_IMAGE}:${THIS_DOCKER_LABEL}
           cache_from: ${CACHE_FROM_IMAGE}
           step-name: Build docker image
@@ -46,23 +43,23 @@ jobs:
           command: |
             cd tests/
             sudo chown root:root crontab
-            TEST_IMAGE=${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ./runTests.sh
+            TEST_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ./runTests.sh
       - when:
           condition:
             equal: [ master, << pipeline.git.branch >> ]
           steps:
             - run:
                 name: Tag image as latest
-                command: docker tag ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}:latest
+                command: docker tag ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest
             - docker/push:
                 step-name: Pushing latest image
-                registry: $THIS_DOCKER_REGISTRY
-                image: ${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}
+                registry: $DOCKER_REGISTRY
+                image: ${THIS_DOCKER_IMAGE}
                 tag: latest
       - docker/push:
           step-name: Pushing actual image
-          registry: $THIS_DOCKER_REGISTRY
-          image: ${THIS_DOCKER_REPO}/${THIS_DOCKER_IMAGE}
+          registry: $DOCKER_REGISTRY
+          image: ${THIS_DOCKER_IMAGE}
           tag: ${THIS_DOCKER_LABEL}
   release:
     docker:
@@ -105,12 +102,15 @@ workflows:
     jobs:
       - release:
           name: pre-release
+          context: default
           prerelease: true
       - build-test-push:
+          context: default
           requires:
             - pre-release
       - release:
           name: release
+          context: default
           prerelease: false
           requires:
             - build-test-push
