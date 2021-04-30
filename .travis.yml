@@ -11,9 +11,9 @@ before_install:
   - echo ${THIS_DOCKER_REGISTRY_PASSWORD} | docker login --username ${THIS_DOCKER_REGISTRY_USERNAME} --password-stdin ${THIS_DOCKER_REGISTRY}
 
 install:
-  - if [[ ! ${TRAVIS_BRANCH} =~ (master|v.*) ]]; then
-     export CACHE_FROM_ARGS="--cache-from ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:master";
-     docker pull ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:master || true;
+  - if [[ ! ${TRAVIS_BRANCH} =~ (main|v.*) ]]; then
+     export CACHE_FROM_ARGS="--cache-from ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:main";
+     docker pull ${THIS_DOCKER_REGISTRY}/${THIS_DOCKER_REPO}/httpd-cron:main || true;
     fi
 
 script:

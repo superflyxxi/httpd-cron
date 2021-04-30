@@ -17,7 +17,7 @@ jobs:
           name: Custom enviroment variables
           command: |
             echo 'export THIS_DOCKER_LABEL=$(cat /tmp/workspace/version.txt)' >> ${BASH_ENV}
-            if [[ ! "${CIRCLE_BRANCH}" == "master" ]] && [[ ! ${CIRCLE_BRANCH} == v* ]]; then
+            if [[ ! "${CIRCLE_BRANCH}" == "main" ]] && [[ ! ${CIRCLE_BRANCH} == v* ]]; then
               echo 'export CACHE_FROM_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest' >> ${BASH_ENV}
             else
               echo 'export CACHE_FROM_IMAGE=httpd:alpine' >> ${BASH_ENV}
@@ -46,7 +46,7 @@ jobs:
             TEST_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ./runTests.sh
       - when:
           condition:
-            equal: [ master, << pipeline.git.branch >> ]
+            equal: [ main, << pipeline.git.branch >> ]
           steps:
             - run:
                 name: Tag image as latest
