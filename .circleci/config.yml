@@ -10,6 +10,7 @@ jobs:
   build-test-push:
     environment:
       THIS_DOCKER_IMAGE: httpd-cron
+      TRIGGER_LATEST_DOCKER_LABEL: main
     machine: true
     steps:
       - attach_workspace:
@@ -36,20 +37,20 @@ jobs:
             cd tests/
             sudo chown root:root crontab
             TEST_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ./runTests.sh
+      - run: 
+          name: Determine docker tags to push
+          command: |
+            export PUSH_DOCKER_TAGS=${THIS_DOCKER_LABEL}
+            if [[ "${TRIGGER_LATEST_DOCKER_LABEL}" == "${THIS_DOCKER_LABEL}" ]]; then
+              docker tag ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest
+              export PUSH_DOCKER_TAGS="${PUSH_DOCKER_TAGS},latest"
+            fi
+            echo "export PUSH_DOCKER_TAGS=${PUSH_DOCKER_TAGS}" >> ${BASH_ENV}
       - docker/push:
           step-name: Pushing actual image
           registry: $DOCKER_REGISTRY
           image: ${THIS_DOCKER_IMAGE}
-          tag: ${THIS_DOCKER_LABEL}
-      - when:
-          condition:
-            equal: [ main, << pipeline.git.branch >> ]
-          steps:
-            - docker/push:
-                step-name: Pushing as latest
-                registry: $DOCKER_REGISTRY
-                image: ${THIS_DOCKER_IMAGE}
-                tag: latest
+          tag: ${PUSH_DOCKER_TAGS}
 
   release:
     parameters:
