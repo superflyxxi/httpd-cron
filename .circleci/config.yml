@@ -40,9 +40,8 @@ jobs:
           name: Determine docker tags to push
           command: |
             export PUSH_DOCKER_TAGS=${THIS_DOCKER_LABEL}
-            if [[ "main" != "<< pipeline.git.branch >>" ]] && [[ "main" != "${THIS_DOCKER_LABEL}" ]]; then
-              #for A in $(echo ${THIS_DOCKER_LABEL} | tr "." "\n"); do 
-              for A in $(echo "3.24.32" | tr "." "\n"); do 
+            if [[ "main" == "<< pipeline.git.branch >>" ]] && [[ "main" != "${THIS_DOCKER_LABEL}" ]]; then
+              for A in $(echo ${THIS_DOCKER_LABEL} | tr "." "\n"); do 
                 NOW="$PREV.$A"
                 docker tag ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${NOW:1}
                 export PUSH_DOCKER_TAGS="${PUSH_DOCKER_TAGS},${NOW:1}"
@@ -51,6 +50,7 @@ jobs:
               docker tag ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest
               export PUSH_DOCKER_TAGS="${PUSH_DOCKER_TAGS},latest"
             fi
+            echo "Docker tags: ${PUSH_DOCKER_TAGS}"
             echo "export PUSH_DOCKER_TAGS=${PUSH_DOCKER_TAGS}" >> ${BASH_ENV}
       - docker/push:
           step-name: Pushing images
