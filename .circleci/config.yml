@@ -14,42 +14,49 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/workspace
+      - checkout
       - run:
           name: Custom enviroment variables
           command: |
-            echo 'export THIS_DOCKER_LABEL=$(cat /tmp/workspace/version.txt)' >> ${BASH_ENV}
+            export THIS_DOCKER_TAG=$(cat /tmp/workspace/version.txt)
+            echo "export THIS_DOCKER_TAG=${THIS_DOCKER_TAG}" >> ${BASH_ENV}
+            export CACHE_FROM_IMAGES=$(grep "^FROM " src/Dockerfile | sed 's/FROM //g')
+            if [[ "<< pipeline.git.branch >>" != "main" ]]; then
+              export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest"
+            fi
+            echo "export CACHE_FROM_IMAGES=${CACHE_FROM_IMAGES}" >> ${BASH_ENV}
+            export DOCKER_TAGS=${THIS_DOCKER_TAG}
+            if [[ "main" == "<< pipeline.git.branch >>" ]] && [[ "main" != "${THIS_DOCKER_TAG}" ]]; then
+              for A in $(echo ${THIS_DOCKER_TAG} | tr "." "\n"); do 
+                NOW="$PREV.$A"
+                export DOCKER_TAGS="${DOCKER_TAGS},${NOW:1}"
+                PREV=$NOW
+              done
+              export DOCKER_TAGS="${DOCKER_TAGS},latest"
+            fi
+            echo "export DOCKER_TAGS=${DOCKER_TAGS}" >> ${BASH_ENV}
             cat ${BASH_ENV}
       - docker/check:
           registry: $DOCKER_REGISTRY
-      - checkout
       - docker/build:
           docker-context: src/
           path: src/
           image: ${THIS_DOCKER_IMAGE}
-          tag: ${THIS_DOCKER_LABEL}
+          tag: ${DOCKER_TAGS}
           registry: ${DOCKER_REGISTRY}
-          extra_build_args: --build-arg BUILD_IMAGE=${THIS_REGISTRY}/${THIS_IMAGE}:${THIS_DOCKER_LABEL}
+          cache_from: ${CACHE_FROM_IMAGES}
           step-name: Build docker image
       - run:
           name: Run tests
           command: |
             cd tests/
             sudo chown root:root crontab
-            TEST_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ./runTests.sh
+            TEST_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_TAG} ./runTests.sh
       - docker/push:
-          step-name: Pushing actual image
+          step-name: Pushing images
           registry: $DOCKER_REGISTRY
           image: ${THIS_DOCKER_IMAGE}
-          tag: ${THIS_DOCKER_LABEL}
-      - when:
-          condition:
-            equal: [ main, << pipeline.git.branch >> ]
-          steps:
-            - docker/push:
-                step-name: Pushing as latest
-                registry: $DOCKER_REGISTRY
-                image: ${THIS_DOCKER_IMAGE}
-                tag: latest
+          tag: ${DOCKER_TAGS}
 
   release:
     parameters:
