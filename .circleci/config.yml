@@ -80,10 +80,12 @@ jobs:
             npx semantic-release ${ADDITIONAL_ARGS}
             if [[ -f version.txt ]]; then 
               cp -v version.txt /tmp/workspace
-            else if [[ "main" == "${CIRCLE_BRANCH}" ]]; then
-              echo "latest" > /tmp/workspace/version.txt
-            else
-              echo "${CIRCLE_BRANCH}" | sed 's#/#-#g' > /tmp/workspace/version.txt
+            else 
+              if [[ "main" == "${CIRCLE_BRANCH}" ]]; then
+                echo "latest" > /tmp/workspace/version.txt
+              else
+                echo "${CIRCLE_BRANCH}" | sed 's#/#-#g' > /tmp/workspace/version.txt
+              fi
             fi
             echo "Version: $(cat /tmp/workspace/version.txt)"
       - persist_to_workspace:
