@@ -24,14 +24,27 @@ jobs:
               export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest"
             fi
             echo "export CACHE_FROM_IMAGES=${CACHE_FROM_IMAGES}" >> ${BASH_ENV}
+            export PUSH_DOCKER_TAGS=${THIS_DOCKER_LABEL}
+            if [[ "main" == "<< pipeline.git.branch >>" ]] && [[ "main" != "${THIS_DOCKER_LABEL}" ]]; then
+              for A in $(echo ${THIS_DOCKER_LABEL} | tr "." "\n"); do 
+                NOW="$PREV.$A"
+                export PUSH_DOCKER_TAGS="${PUSH_DOCKER_TAGS},${NOW:1}"
+                PREV=$NOW
+              done
+              export PUSH_DOCKER_TAGS="${PUSH_DOCKER_TAGS},latest"
+            fi
+            echo "export PUSH_DOCKER_TAGS=${PUSH_DOCKER_TAGS}" >> ${BASH_ENV}
             cat ${BASH_ENV}
+      - run: 
+          name: Determine docker tags to push
+          command: |
       - docker/check:
           registry: $DOCKER_REGISTRY
       - docker/build:
           docker-context: src/
           path: src/
           image: ${THIS_DOCKER_IMAGE}
-          tag: ${THIS_DOCKER_LABEL}
+          tag: ${PUSH_DOCKER_TAGS}
           registry: ${DOCKER_REGISTRY}
           cache_from: ${CACHE_FROM_IMAGES}
           step-name: Build docker image
@@ -41,22 +54,6 @@ jobs:
             cd tests/
             sudo chown root:root crontab
             TEST_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ./runTests.sh
-      - run: 
-          name: Determine docker tags to push
-          command: |
-            export PUSH_DOCKER_TAGS=${THIS_DOCKER_LABEL}
-            if [[ "main" == "<< pipeline.git.branch >>" ]] && [[ "main" != "${THIS_DOCKER_LABEL}" ]]; then
-              for A in $(echo ${THIS_DOCKER_LABEL} | tr "." "\n"); do 
-                NOW="$PREV.$A"
-                docker tag ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${NOW:1}
-                export PUSH_DOCKER_TAGS="${PUSH_DOCKER_TAGS},${NOW:1}"
-                PREV=$NOW
-              done
-              docker tag ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest
-              export PUSH_DOCKER_TAGS="${PUSH_DOCKER_TAGS},latest"
-            fi
-            echo "Docker tags: ${PUSH_DOCKER_TAGS}"
-            echo "export PUSH_DOCKER_TAGS=${PUSH_DOCKER_TAGS}" >> ${BASH_ENV}
       - docker/push:
           step-name: Pushing images
           registry: $DOCKER_REGISTRY
