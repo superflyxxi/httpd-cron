@@ -63,8 +63,6 @@ jobs:
           image: ${THIS_DOCKER_IMAGE}
           tag: ${THIS_DOCKER_LABEL}
   release:
-    docker:
-      - image: circleci/node
     parameters:
       prerelease:
         description: Whether it's a pre-release and not actually release.
@@ -73,7 +71,7 @@ jobs:
     executor: node/default
     steps:
       - checkout
-      - node/install-packages
+#      - node/install-packages
       - node/install-packages:
         override-ci-command: npm install -D @semantic-release/exec
       - attach_workspace:
