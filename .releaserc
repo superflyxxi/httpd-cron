@@ -4,9 +4,10 @@
 		["@semantic-release/commit-analyzer", {
 			"preset": "angular",
 			"releaseRules": [
-				{"type":"fix", "release":"patch"},
+				{"type":"major", "release":"major"},
 				{"type":"feat", "release":"minor"},
-				{"scope":"ci", "release":false}
+				{"scope":"ci", "release":false},
+				{"type":null, "release":"patch"}
 			],
 			"parserOpts": {
 				"noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"]
