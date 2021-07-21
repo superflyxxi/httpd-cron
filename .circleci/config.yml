@@ -25,7 +25,7 @@ jobs:
       - docker/check:
           registry: $DOCKER_REGISTRY
       - docker/pull:
-          images: httpd:alpine,${CACHE_FROM_IMAGE}
+          images: ${CACHE_FROM_IMAGE}
           ignore-docker-pull-error: true
       - checkout
       - docker/build:
