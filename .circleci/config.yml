@@ -71,7 +71,7 @@ jobs:
     executor: node/default
     steps:
       - checkout
-#      - node/install-packages
+      - run: npm init -y
       - node/install-packages:
         override-ci-command: npm install -D @semantic-release/exec
       - attach_workspace:
