@@ -69,10 +69,12 @@ jobs:
         description: Whether it's a pre-release and not actually release.
         type: boolean
         default: false
+    executor: node/default
     steps:
       - checkout
-      - run: npm install
-      - run: npm install -D @semantic-release/exec
+      - node/install-packages
+      - node/install-packages:
+        override-ci-command: npm install -D @semantic-release/exec
       - attach_workspace:
           at: /tmp/workspace
       - when:
