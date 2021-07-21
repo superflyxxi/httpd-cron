@@ -5,9 +5,9 @@
 			"preset": "angular",
 			"releaseRules": [
 				{"type":"major", "release":"major"},
-				{"type":"fix", "release":"patch"},
 				{"type":"feat", "release":"minor"},
-				{"scope":"ci", "release":false}
+				{"scope":"ci", "release":false},
+				{"type":null, "release":"patch"}
 			],
 			"parserOpts": {
 				"noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"]
