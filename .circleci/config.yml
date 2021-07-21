@@ -5,8 +5,8 @@ orbs:
     docker: circleci/docker@1
     node: circleci/node@4
 
-# Orchestrate or schedule a set of jobs
 jobs:
+# Orchestrate or schedule a set of jobs
   build-test-push:
     environment:
       THIS_DOCKER_IMAGE: httpd-cron
@@ -41,6 +41,16 @@ jobs:
           registry: $DOCKER_REGISTRY
           image: ${THIS_DOCKER_IMAGE}
           tag: ${THIS_DOCKER_LABEL}
+      - when:
+          condition:
+            equal: [ main, << pipeline.git.branch >> ]
+          steps:
+            - docker/push:
+                step-name: Pushing as latest
+                registry: $DOCKER_REGISTRY
+                image: ${THIS_DOCKER_IMAGE}
+                tag: latest
+
   release:
     parameters:
       prerelease:
@@ -74,11 +84,7 @@ jobs:
             if [[ -f version.txt ]]; then 
               cp -v version.txt /tmp/workspace
             else 
-              if [[ "main" == "${CIRCLE_BRANCH}" ]]; then
-                echo "latest" > /tmp/workspace/version.txt
-              else
-                echo "${CIRCLE_BRANCH}" | sed 's#/#-#g' > /tmp/workspace/version.txt
-              fi
+              echo "${CIRCLE_BRANCH}" | sed 's#/#-#g' > /tmp/workspace/version.txt
             fi
             echo "Version: $(cat /tmp/workspace/version.txt)"
       - persist_to_workspace:
