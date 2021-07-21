@@ -24,9 +24,13 @@ jobs:
             cat ${BASH_ENV}
       - docker/check:
           registry: $DOCKER_REGISTRY
-      - docker/pull:
-          images: ${CACHE_FROM_IMAGE}
-          ignore-docker-pull-error: true
+      - unless:
+          condition: 
+            equal: [ main, << pipeline.git.branch >> ]
+          steps:
+            - docker/pull:
+                images: ${CACHE_FROM_IMAGE}
+                ignore-docker-pull-error: true
       - checkout
       - docker/build:
           docker-context: src/
