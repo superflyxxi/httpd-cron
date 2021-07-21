@@ -43,18 +43,6 @@ jobs:
             cd tests/
             sudo chown root:root crontab
             TEST_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ./runTests.sh
-      - when:
-          condition:
-            equal: [ main, << pipeline.git.branch >> ]
-          steps:
-            - run:
-                name: Tag image as latest
-                command: docker tag ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest
-            - docker/push:
-                step-name: Pushing latest image
-                registry: $DOCKER_REGISTRY
-                image: ${THIS_DOCKER_IMAGE}
-                tag: latest
       - docker/push:
           step-name: Pushing actual image
           registry: $DOCKER_REGISTRY
@@ -92,6 +80,8 @@ jobs:
             npx semantic-release ${ADDITIONAL_ARGS}
             if [[ -f version.txt ]]; then 
               cp -v version.txt /tmp/workspace
+            else if [[ "main" == "${CIRCLE_BRANCH}" ]]; then
+              echo "latest" > /tmp/workspace/version.txt
             else
               echo "${CIRCLE_BRANCH}" | sed 's#/#-#g' > /tmp/workspace/version.txt
             fi
