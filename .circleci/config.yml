@@ -20,8 +20,6 @@ jobs:
             echo 'export THIS_DOCKER_LABEL=$(cat /tmp/workspace/version.txt)' >> ${BASH_ENV}
             if [[ ! "${CIRCLE_BRANCH}" == "main" ]] && [[ ! ${CIRCLE_BRANCH} == v* ]]; then
               echo 'export CACHE_FROM_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest' >> ${BASH_ENV}
-            else
-              echo 'export CACHE_FROM_IMAGE=httpd:alpine' >> ${BASH_ENV}
             fi
             cat ${BASH_ENV}
       - docker/check:
