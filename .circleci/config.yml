@@ -2,7 +2,8 @@
 version: 2.1
 # Use a package of configuration called an orb.
 orbs:
-    docker: circleci/docker@1.5.0
+    docker: circleci/docker@1
+    node: circleci/node@4
 
 # Orchestrate or schedule a set of jobs
 jobs:
@@ -62,19 +63,22 @@ jobs:
           image: ${THIS_DOCKER_IMAGE}
           tag: ${THIS_DOCKER_LABEL}
   release:
-    docker:
-      - image: circleci/node
     parameters:
       prerelease:
         description: Whether it's a pre-release and not actually release.
         type: boolean
         default: false
+    executor: node/default
     steps:
       - checkout
-      - run: npm install
-      - run: npm install -D @semantic-release/exec
-      - attach_workspace:
-          at: /tmp/workspace
+      - run: 
+          name: Check for package.json
+          command: |
+            if [[ ! -f package.json ]]; then npm init -y; fi
+      - run: 
+          name: Add semenatic-release/exec to package.json
+          command: |
+            npm install -D @semantic-release/exec
       - when:
           condition: << parameters.prerelease >>
           steps:
@@ -82,6 +86,8 @@ jobs:
               name: Define additional args
               command: |
                 echo "ADDITIONAL_ARGS=--dry-run" >> ${BASH_ENV}
+      - attach_workspace:
+          at: /tmp/workspace
       - run:
           name: Run semantic-release
           command: |
@@ -89,7 +95,7 @@ jobs:
             if [[ -f version.txt ]]; then 
               cp -v version.txt /tmp/workspace
             else
-              echo "${CIRCLE_BRANCH}" > /tmp/workspace/version.txt
+              echo "${CIRCLE_BRANCH}" | sed 's#/#-#g' > /tmp/workspace/version.txt
             fi
             echo "Version: $(cat /tmp/workspace/version.txt)"
       - persist_to_workspace:
