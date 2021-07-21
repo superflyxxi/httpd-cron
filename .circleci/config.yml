@@ -18,22 +18,22 @@ jobs:
       - run:
           name: Custom enviroment variables
           command: |
-            echo 'export THIS_DOCKER_LABEL=$(cat /tmp/workspace/version.txt)' >> ${BASH_ENV}
+            echo 'export THIS_DOCKER_TAG=$(cat /tmp/workspace/version.txt)' >> ${BASH_ENV}
             export CACHE_FROM_IMAGES=$(grep "^FROM " src/Dockerfile | sed 's/FROM //g')
             if [[ "<< pipeline.git.branch >>" != "main" ]]; then
               export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest"
             fi
             echo "export CACHE_FROM_IMAGES=${CACHE_FROM_IMAGES}" >> ${BASH_ENV}
-            export PUSH_DOCKER_TAGS=${THIS_DOCKER_LABEL}
-            if [[ "main" == "<< pipeline.git.branch >>" ]] && [[ "main" != "${THIS_DOCKER_LABEL}" ]]; then
-              for A in $(echo ${THIS_DOCKER_LABEL} | tr "." "\n"); do 
+            export DOCKER_TAGS=${THIS_DOCKER_TAG}
+            if [[ "main" == "<< pipeline.git.branch >>" ]] && [[ "main" != "${THIS_DOCKER_TAG}" ]]; then
+              for A in $(echo ${THIS_DOCKER_TAG} | tr "." "\n"); do 
                 NOW="$PREV.$A"
-                export PUSH_DOCKER_TAGS="${PUSH_DOCKER_TAGS},${NOW:1}"
+                export DOCKER_TAGS="${DOCKER_TAGS},${NOW:1}"
                 PREV=$NOW
               done
-              export PUSH_DOCKER_TAGS="${PUSH_DOCKER_TAGS},latest"
+              export DOCKER_TAGS="${DOCKER_TAGS},latest"
             fi
-            echo "export PUSH_DOCKER_TAGS=${PUSH_DOCKER_TAGS}" >> ${BASH_ENV}
+            echo "export DOCKER_TAGS=${DOCKER_TAGS}" >> ${BASH_ENV}
             cat ${BASH_ENV}
       - docker/check:
           registry: $DOCKER_REGISTRY
@@ -41,7 +41,7 @@ jobs:
           docker-context: src/
           path: src/
           image: ${THIS_DOCKER_IMAGE}
-          tag: ${PUSH_DOCKER_TAGS}
+          tag: ${DOCKER_TAGS}
           registry: ${DOCKER_REGISTRY}
           cache_from: ${CACHE_FROM_IMAGES}
           step-name: Build docker image
@@ -50,12 +50,12 @@ jobs:
           command: |
             cd tests/
             sudo chown root:root crontab
-            TEST_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_LABEL} ./runTests.sh
+            TEST_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_TAG} ./runTests.sh
       - docker/push:
           step-name: Pushing images
           registry: $DOCKER_REGISTRY
           image: ${THIS_DOCKER_IMAGE}
-          tag: ${PUSH_DOCKER_TAGS}
+          tag: ${DOCKER_TAGS}
 
   release:
     parameters:
