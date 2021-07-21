@@ -35,9 +35,6 @@ jobs:
             fi
             echo "export PUSH_DOCKER_TAGS=${PUSH_DOCKER_TAGS}" >> ${BASH_ENV}
             cat ${BASH_ENV}
-      - run: 
-          name: Determine docker tags to push
-          command: |
       - docker/check:
           registry: $DOCKER_REGISTRY
       - docker/build:
