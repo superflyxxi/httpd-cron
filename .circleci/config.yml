@@ -95,7 +95,7 @@ jobs:
             if [[ -f version.txt ]]; then 
               cp -v version.txt /tmp/workspace
             else
-              echo "${CIRCLE_BRANCH}" > /tmp/workspace/version.txt
+              echo "${CIRCLE_BRANCH}" | sed 's#/#-#g' > /tmp/workspace/version.txt
             fi
             echo "Version: $(cat /tmp/workspace/version.txt)"
       - persist_to_workspace:
