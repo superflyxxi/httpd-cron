@@ -1,10 +1,14 @@
 version: 2
+
+basic: &basic
+  schedule:
+    interval: "monthly"
+  commit-message:
+    prefix: "fix: "
+  reviewers:
+    - superflyxxi
+
 updates:
   - package-ecosystem: "docker"
+    <<: *basic
     directory: "/src"
-    schedule:
-      interval: "monthly"
-    commit-message:
-      prefix: "fix: "
-    reviewers:
-      - superflyxxi
