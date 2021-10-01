@@ -71,10 +71,6 @@ jobs:
           name: Check for package.json
           command: |
             if [[ ! -f package.json ]]; then npm init -y; fi
-      - run: 
-          name: Add semenatic-release/exec to package.json
-          command: |
-            npm install -D @semantic-release/exec
       - when:
           condition: << parameters.prerelease >>
           steps:
@@ -87,7 +83,7 @@ jobs:
       - run:
           name: Run semantic-release
           command: |
-            npx semantic-release ${ADDITIONAL_ARGS}
+            npx -p semantic-release -p semantic-release/exec semantic-release ${ADDITIONAL_ARGS}
             if [[ -f version.txt ]]; then 
               cp -v version.txt /tmp/workspace
             else 
