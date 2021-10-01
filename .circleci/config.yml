@@ -64,13 +64,11 @@ jobs:
         description: Whether it's a pre-release and not actually release.
         type: boolean
         default: false
-    executor: node/default
+    executor: 
+      name: node/default
+      tag: 16.10.0
     steps:
       - checkout
-      - run: 
-          name: Check for package.json
-          command: |
-            if [[ ! -f package.json ]]; then npm init -y; fi
       - when:
           condition: << parameters.prerelease >>
           steps:
