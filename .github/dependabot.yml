@@ -1,15 +1,12 @@
 version: 2
 
-template: &template
-  schedule:
-    interval: "monthly"
-  commit-message:
-    prefix: "fix: "
-    prefix-development: "fix(ci): "
-  reviewers:
-    - superflyxxi
-
 updates:
   - package-ecosystem: "docker"
-    <<: *template
     directory: "/src"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "fix: "
+      prefix-development: "fix(ci): "
+    reviewers:
+      - superflyxxi
