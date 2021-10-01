@@ -4,3 +4,5 @@ updates:
     directory: "/src"
     schedule:
       interval: "monthly"
+    commit-message:
+      prefix: "fix: "
