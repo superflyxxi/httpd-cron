@@ -1,4 +1,4 @@
-FROM httpd:2.4.48-alpine3.14
+FROM httpd:2.4.49-alpine3.14
 MAINTAINER SuperFlyXXI <superflyxxi@yahoo.com>
 
 RUN apk add --no-cache dcron curl
