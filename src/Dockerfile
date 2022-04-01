@@ -1,14 +1,8 @@
 FROM httpd:2.4.51-alpine3.14
-MAINTAINER SuperFlyXXI <superflyxxi@yahoo.com>
-
-RUN apk add --no-cache dcron curl
-
-HEALTHCHECK --interval=1m --timeout=10s \
-	CMD curl --fail http://localhost:80/
-
-RUN rm /usr/local/apache2/htdocs/index.html
-
+LABEL org.opencontainers.image.authors="SuperFlyXXI <superflyxxi@yahoo.com>"
 ENTRYPOINT ["/entrypoint.sh"]
 
-ADD entrypoint.sh /
+RUN apk add --no-cache dcron=4.5-r7
+RUN rm /usr/local/apache2/htdocs/index.html
 
+ADD entrypoint.sh /
