@@ -15,8 +15,6 @@ anchors:
 
 jobs:
   build:
-    environment:
-      THIS_DOCKER_IMAGE: httpd-cron
     executor: *docker-executor
     steps:
       - checkout
@@ -25,7 +23,7 @@ jobs:
           command: |
             export CACHE_FROM_IMAGES=$(grep "^FROM " src/Dockerfile | sed 's/FROM //g')
             if [[ "<< pipeline.git.branch >>" != "main" ]]; then
-              export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest"
+              export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${DOCKER_REGISTRY}/${CIRCLE_PROJECT_REPONAME}:latest"
             fi
             echo "export CACHE_FROM_IMAGES=${CACHE_FROM_IMAGES}" >> ${BASH_ENV}
             cat ${BASH_ENV}
@@ -43,6 +41,24 @@ jobs:
           root: ./
           paths:
             - images.tar*
+
+  test:
+    environment:
+      THIS_DOCKER_IMAGE: httpd-cron
+    executor: *docker-executor
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Load docker image
+          command: docker load -i /tmp/workspace/images.tar
+      - checkout
+      - run:
+          name: Run tests
+          command: |
+            cd tests/
+            sudo chown root:root crontab
+            TEST_IMAGE=${CIRCLE_PROJECT_REPONAME}:build ./runTests.sh
 
   build-test-push:
     environment:
@@ -140,6 +156,10 @@ workflows:
     jobs:
       - build:
           context: default
+      - test:
+          context: default
+          requires:
+            - build
       - release:
           name: pre-release
           context: default
