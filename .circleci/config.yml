@@ -2,15 +2,23 @@
 version: 2.1
 # Use a package of configuration called an orb.
 orbs:
-    docker: circleci/docker@1
-    node: circleci/node@4
+    docker: circleci/docker@2
+    node: circleci/node@5
+
+anchors:
+  node-executor: &node-executor
+    name: node/default
+    tag: '16.14'
+  docker-executor: &docker-executor
+    name: docker/machine
+    dlc: false
 
 jobs:
 # Orchestrate or schedule a set of jobs
   build-test-push:
     environment:
       THIS_DOCKER_IMAGE: httpd-cron
-    machine: true
+    executor: *docker-exectur
     steps:
       - attach_workspace:
           at: /tmp/workspace
@@ -68,9 +76,7 @@ jobs:
         description: Whether it's a pre-release and not actually release.
         type: boolean
         default: false
-    executor: 
-      name: node/default
-      tag: 16.10.0
+    executor: *node-executor
     steps:
       - checkout
       - when:
