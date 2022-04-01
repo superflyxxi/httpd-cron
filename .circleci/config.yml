@@ -52,8 +52,12 @@ jobs:
             cd tests/
             sudo chown root:root crontab
             TEST_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_TAG} ./runTests.sh
+      - run:
+          name: Tag images for public repos
+          command: |
+            
       - docker/push:
-          step-name: Pushing images
+          step-name: Pushing images to private registry
           registry: $DOCKER_REGISTRY
           image: ${THIS_DOCKER_IMAGE}
           tag: ${DOCKER_TAGS}
