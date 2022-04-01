@@ -14,11 +14,40 @@ anchors:
     dlc: false
 
 jobs:
-# Orchestrate or schedule a set of jobs
+  build:
+    environment:
+      THIS_DOCKER_IMAGE: httpd-cron
+    executor: *docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Custom enviroment variables
+          command: |
+            export CACHE_FROM_IMAGES=$(grep "^FROM " src/Dockerfile | sed 's/FROM //g')
+            if [[ "<< pipeline.git.branch >>" != "main" ]]; then
+              export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:latest"
+            fi
+            echo "export CACHE_FROM_IMAGES=${CACHE_FROM_IMAGES}" >> ${BASH_ENV}
+            cat ${BASH_ENV}
+      - docker/build:
+          docker-context: src/
+          path: src/
+          image: ${CIRCLE_PROJECT_REPONAME}
+          tag: build
+          cache_from: ${CACHE_FROM_IMAGES}
+          step-name: Build docker image
+      - run:
+          name: Save docker image
+          command: docker save -o images.tar ${CIRCLE_PROJECT_REPONAME}:build
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - images.tar*
+
   build-test-push:
     environment:
       THIS_DOCKER_IMAGE: httpd-cron
-    executor: *docker-exectur
+    executor: *docker-executor
     steps:
       - attach_workspace:
           at: /tmp/workspace
@@ -61,9 +90,12 @@ jobs:
             sudo chown root:root crontab
             TEST_IMAGE=${DOCKER_REGISTRY}/${THIS_DOCKER_IMAGE}:${THIS_DOCKER_TAG} ./runTests.sh
       - run:
-          name: Tag images for public repos
-          command: |
-            
+          name: Save docker image
+          command: docker save -o images.tar ${CIRCLE_PROJECT_REPONAME}:build
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - images.tar*
       - docker/push:
           step-name: Pushing images to private registry
           registry: $DOCKER_REGISTRY
@@ -106,6 +138,8 @@ jobs:
 workflows:
   default:
     jobs:
+      - build:
+          context: default
       - release:
           name: pre-release
           context: default
