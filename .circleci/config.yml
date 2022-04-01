@@ -218,6 +218,12 @@ workflows:
           context: default
           requires:
             - build
+      - release:
+          name: release
+          context: default
+          prerelease: false
+          requires:
+            - test
       - publish-docker:
           name: publish-docker-private
           context: default
@@ -227,9 +233,30 @@ workflows:
           requires:
             - test
             - release
-      - release:
-          name: release
+      - publish-docker:
+          name: publish-docker-ghcr
           context: default
-          prerelease: false
+          registry-env: GHCR_REGISTRY
+          docker-username-env: GHCR_USERNAME
+          docker-password-env: GHCR_TOKEN
           requires:
             - test
+            - release
+          filters:
+            branches:
+              only:
+                - main
+                - dev
+      - publish-docker:
+          name: publish-docker-dockerio
+          context: default
+          registry-env: DOCKER_IO_REGISTRY
+          docker-username-env: DOCKER_IO_USERNAME
+          docker-password-env: DOCKER_IO_PASSWORD
+          requires:
+            - test
+            - release
+          filters:
+            branches:
+              only:
+                - main
