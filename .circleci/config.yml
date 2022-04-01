@@ -218,10 +218,6 @@ workflows:
           context: default
           requires:
             - build
-      - release:
-          name: pre-release
-          context: default
-          prerelease: true
       - publish-docker:
           name: publish-docker-private
           context: default
@@ -230,14 +226,10 @@ workflows:
           docker-password-env: PRIVATE_DOCKER_PASSWORD
           requires:
             - test
-            - pre-release
-      - build-test-push:
-          context: default
-          requires:
-            - pre-release
+            - release
       - release:
           name: release
           context: default
           prerelease: false
           requires:
-            - build-test-push
+            - test
