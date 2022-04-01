@@ -60,6 +60,64 @@ jobs:
             sudo chown root:root crontab
             TEST_IMAGE=${CIRCLE_PROJECT_REPONAME}:build ./runTests.sh
 
+  publish-docker:
+    executor: *docker-executor
+    resource_class: medium
+    parameters:
+      registry-env:
+        description: The registry envirnment variable to use to publish docker images.
+        type: string
+        default: docker.io
+      docker-username-env:
+        description: The docker registry username env variable to use.
+        type: string
+        default: DOCKER_LOGIN
+      docker-password-env:
+        description: The docker registery password env variable to use.
+        type: string
+        default: DOCKER_PASSWORD
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Custom enviroment variables
+          command: |
+            export PRIMARY_DOCKER_TAG=$(cat /tmp/workspace/version.txt)
+            export DOCKER_TAGS=${PRIMARY_DOCKER_TAG}
+            if [[ "main" == "<< pipeline.git.branch >>" ]] && [[ "main" != "${PRIMARY_DOCKER_TAG}" ]]; then
+              for A in $(echo ${PRIMARY_DOCKER_TAG} | tr "." "\n"); do 
+                NOW="$PREV.$A"
+                export DOCKER_TAGS="${DOCKER_TAGS},${NOW:1}"
+                PREV=$NOW
+              done
+              export DOCKER_TAGS="${DOCKER_TAGS},main,latest"
+            fi
+            echo "export DOCKER_TAGS=${DOCKER_TAGS}" >> ${BASH_ENV}
+            echo "export FINAL_IMAGE_NAME=${<< parameters.docker-username-env >>}/${CIRCLE_PROJECT_REPONAME}" >> ${BASH_ENV}
+            cat ${BASH_ENV}
+      - docker/check:
+          registry: ${<< parameters.registry-env >>}
+          docker-password: << parameters.docker-password-env >>
+          docker-username: << parameters.docker-username-env >>
+      - run:
+          name: Load docker images
+          command: |
+            docker load -i /tmp/workspace/images.tar
+      - run:
+          name: Tag docker images for repos
+          command: |
+            IFS="," read -ra LOOP_TAGS \<<< "${DOCKER_TAGS}"
+            set -x
+            for TAG in "${LOOP_TAGS[@]}"; do
+              docker tag ${CIRCLE_PROJECT_REPONAME}:build ${<< parameters.registry-env >>}/${FINAL_IMAGE_NAME}:${TAG}
+            done
+            set +x
+      - docker/push:
+          step-name: Pushing image to desired repo
+          registry: ${<< parameters.registry-env >>}
+          image: ${FINAL_IMAGE_NAME}
+          tag: ${DOCKER_TAGS}
+
   build-test-push:
     environment:
       THIS_DOCKER_IMAGE: httpd-cron
@@ -164,6 +222,15 @@ workflows:
           name: pre-release
           context: default
           prerelease: true
+      - publish-docker:
+          name: publish-docker-private
+          context: default
+          registry-env: PRIVATE_DOCKER_REGISTRY
+          docker-username-env: PRIVATE_DOCKER_USERNAME
+          docker-password-env: PRIVATE_DOCKER_PASSWORD
+          requires:
+            - test
+            - pre-release
       - build-test-push:
           context: default
           requires:
