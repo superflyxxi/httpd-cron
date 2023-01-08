@@ -68,6 +68,7 @@ jobs:
       - snyk/scan:
           project: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
           docker-image-name: ${CIRCLE_PROJECT_REPONAME}:build
+          additional-args: --app-vulns
 
   publish-docker:
     executor: *docker-executor
@@ -185,7 +186,7 @@ workflows:
           context: default
           requires:
             - build
-              #- release
+            - release
           filters:
             branches:
               ignore:
