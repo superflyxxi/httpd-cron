@@ -29,6 +29,10 @@ jobs:
             cat ${BASH_ENV}
       - setup_remote_docker:
           docker_layer_caching: false
+      - docker/check:
+          registry: ${PRIVATE_DOCKER_REGISTRY}
+          docker-username: PRIVATE_DOCKER_USERNAME
+          docker-password: PRIVATE_DOCKER_PASSWORD
       - docker/build:
           docker-context: src/
           path: src/
