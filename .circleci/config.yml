@@ -6,14 +6,11 @@ orbs:
   node: circleci/node@5
   snyk: snyk/snyk@1
 
-anchors:
-  docker-executor: &docker-executor
-    name: docker/machine
-    dlc: false
-
 jobs:
   build:
-    executor: *docker-executor
+    resource_class: small
+    docker:
+      - image: cimg/base:stable
     steps:
       - checkout
       - run:
@@ -21,10 +18,16 @@ jobs:
           command: |
             export CACHE_FROM_IMAGES=$(grep "^FROM " src/Dockerfile | sed 's/FROM //g')
             if [[ "<< pipeline.git.branch >>" != "main" ]]; then
-              export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${PRIVATE_DOCKER_REGISTRY}/${CIRCLE_PROJECT_REPONAME}:latest"
+              export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${PRIVATE_DOCKER_REGISTRY}/${PRIVATE_DOCKER_USERNAME}/${CIRCLE_PROJECT_REPONAME}:latest"
             fi
             echo "export CACHE_FROM_IMAGES=${CACHE_FROM_IMAGES}" >> ${BASH_ENV}
             cat ${BASH_ENV}
+      - setup_remote_docker:
+          docker_layer_caching: false
+      - docker/check:
+          registry: ${PRIVATE_DOCKER_REGISTRY}
+          docker-username: PRIVATE_DOCKER_USERNAME
+          docker-password: PRIVATE_DOCKER_PASSWORD
       - docker/build:
           docker-context: src/
           path: src/
@@ -41,10 +44,14 @@ jobs:
             - images.tar*
 
   test:
-    executor: *docker-executor
+    resource_class: small
+    docker:
+      - image: cimg/base:stable
     steps:
       - attach_workspace:
           at: /tmp/workspace
+      - setup_remote_docker:
+          docker_layer_caching: false
       - run:
           name: Load docker image
           command: docker load -i /tmp/workspace/images.tar
@@ -57,11 +64,14 @@ jobs:
             TEST_IMAGE=${CIRCLE_PROJECT_REPONAME}:build ./runTests.sh
 
   snyk-scan:
-    executor: *docker-executor
-    resource_class: medium
+    resource_class: small
+    docker:
+      - image: cimg/base:stable
     steps:
       - attach_workspace:
           at: /tmp/workspace
+      - setup_remote_docker:
+          docker_layer_caching: false
       - run:
           name: Load docker image
           command: docker load -i /tmp/workspace/images.tar
@@ -71,8 +81,9 @@ jobs:
           additional-arguments: --app-vulns
 
   publish-docker:
-    executor: *docker-executor
-    resource_class: medium
+    resource_class: small
+    docker:
+      - image: cimg/base:stable
     parameters:
       registry-env:
         description: The registry envirnment variable to use to publish docker images.
@@ -89,6 +100,8 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/workspace
+      - setup_remote_docker:
+          docker_layer_caching: false
       - run:
           name: Custom enviroment variables
           command: |
