@@ -246,6 +246,7 @@ workflows:
           context: default
           requires:
             - build
+            - release
           filters:
             branches:
               ignore:
