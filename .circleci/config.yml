@@ -2,8 +2,9 @@
 version: 2.1
 # Use a package of configuration called an orb.
 orbs:
-    docker: circleci/docker@2.0
-    node: circleci/node@5
+  docker: circleci/docker@2.0
+  node: circleci/node@5
+  snyk: snyk/snyk@1
 
 anchors:
   docker-executor: &docker-executor
