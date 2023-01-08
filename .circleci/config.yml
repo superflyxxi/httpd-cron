@@ -13,6 +13,7 @@ anchors:
 
 jobs:
   build:
+    resource_class: small
     docker:
       - image: cimg/base:stable
     steps:
@@ -44,10 +45,14 @@ jobs:
             - images.tar*
 
   test:
-    executor: *docker-executor
+    resource_class: small
+    docker:
+      - image: cimg/base:stable
     steps:
       - attach_workspace:
           at: /tmp/workspace
+      - setup_remote_docker:
+          docker_layer_caching: false
       - run:
           name: Load docker image
           command: docker load -i /tmp/workspace/images.tar
