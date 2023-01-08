@@ -18,7 +18,7 @@ jobs:
           command: |
             export CACHE_FROM_IMAGES=$(grep "^FROM " src/Dockerfile | sed 's/FROM //g')
             if [[ "<< pipeline.git.branch >>" != "main" ]]; then
-              export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${PRIVATE_DOCKER_REGISTRY}/${CIRCLE_PROJECT_REPONAME}:latest"
+              export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${PRIVATE_DOCKER_REGISTRY}/${PRIVATE_DOCKER_USERNAME}/${CIRCLE_PROJECT_REPONAME}:latest"
             fi
             echo "export CACHE_FROM_IMAGES=${CACHE_FROM_IMAGES}" >> ${BASH_ENV}
             cat ${BASH_ENV}
