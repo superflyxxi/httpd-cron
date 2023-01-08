@@ -60,6 +60,19 @@ jobs:
             sudo chown root:root crontab
             TEST_IMAGE=${CIRCLE_PROJECT_REPONAME}:build ./runTests.sh
 
+  snyk-scan:
+    executor: *docker-executor
+    resource_class: medium
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Load docker image
+          command: docker load -i /tmp/workspace/images.tar
+      - snyk/scan:
+          project: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+          docker-image-name: ${CIRCLE_PROJECT_REPONAME}:build
+
   publish-docker:
     executor: *docker-executor
     resource_class: medium
@@ -230,6 +243,14 @@ workflows:
           prerelease: false
           requires:
             - test
+      - snyk-scan:
+          context: default
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - main
       - publish-docker:
           name: publish-docker-private
           context: default
