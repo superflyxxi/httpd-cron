@@ -6,9 +6,6 @@ orbs:
     node: circleci/node@5
 
 anchors:
-  node-executor: &node-executor
-    name: node/default
-    tag: '16.14'
   docker-executor: &docker-executor
     name: docker/machine
     dlc: false
@@ -195,7 +192,8 @@ jobs:
         description: Whether it's a pre-release and not actually release.
         type: boolean
         default: false
-    executor: *node-executor
+    executor:
+      name: node/default
     steps:
       - checkout
       - when:
