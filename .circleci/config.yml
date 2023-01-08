@@ -6,11 +6,6 @@ orbs:
   node: circleci/node@5
   snyk: snyk/snyk@1
 
-anchors:
-  docker-executor: &docker-executor
-    name: docker/machine
-    dlc: false
-
 jobs:
   build:
     resource_class: small
@@ -86,8 +81,9 @@ jobs:
           additional-arguments: --app-vulns
 
   publish-docker:
-    executor: *docker-executor
-    resource_class: medium
+    resource_class: small
+    docker:
+      - image: cimg/base:stable
     parameters:
       registry-env:
         description: The registry envirnment variable to use to publish docker images.
@@ -104,6 +100,8 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/workspace
+      - setup_remote_docker:
+          docker_layer_caching: false
       - run:
           name: Custom enviroment variables
           command: |
