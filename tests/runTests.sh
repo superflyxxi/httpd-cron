@@ -25,7 +25,7 @@ sleep ${SECONDS_TO_SLEEP}s
 SECONDS_DOCKER_STOP=$(date +%s)
 docker cp test:/home/test/minute.log ./minute.log
 docker cp test:/var/log/cron.log ./cron.log
-#docker stop --time 10 test
+docker stop --time 10 test
 SECONDS_DOCKER_STOP=$(($(date +%s) - ${SECONDS_DOCKER_STOP}))
 log "Docker took ${SECONDS_DOCKER_STOP}s to stop"
 
