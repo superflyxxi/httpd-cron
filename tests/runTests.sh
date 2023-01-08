@@ -13,7 +13,12 @@ if [[ ${SECONDS_BEFORE_START} -gt 50 ]]; then
 fi
 
 log "Running docker"
-docker run --rm -d --init --name test -v "$(pwd)/crontab:/etc/crontabs/root:ro" -v "$(pwd)/cron.log:/var/log/cron.log" -v "$(pwd)/minute.log:/home/test/minute.log" ${TEST_IMAGE}
+docker build -t httpd-cron:test -f- . <<EOF
+FROM ${TEST_IMAGE}
+RUN mkdir -p /home/test
+ADD crontab /etc/crontabs/root
+EOF
+docker run --rm -d --init --name test httpd-cron:test
 
 # 60 minus number of seconds past 00... +  5 seconds for buffer
 SECONDS_TO_SLEEP=$((65 - $(date +%s) % 60))
@@ -21,7 +26,9 @@ log "Sleeping for ${SECONDS_TO_SLEEP} second(s)"
 sleep ${SECONDS_TO_SLEEP}s
 
 SECONDS_DOCKER_STOP=$(date +%s)
-docker stop --time 10 test
+docker cp test:/home/test/minute.log ./minute.log
+docker cp test:/var/log/cron.log ./cron.log
+#docker stop --time 10 test
 SECONDS_DOCKER_STOP=$(($(date +%s) - ${SECONDS_DOCKER_STOP}))
 log "Docker took ${SECONDS_DOCKER_STOP}s to stop"
 
