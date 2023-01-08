@@ -2,13 +2,11 @@
 version: 2.1
 # Use a package of configuration called an orb.
 orbs:
-    docker: circleci/docker@2.0
-    node: circleci/node@5
+  docker: circleci/docker@2.0
+  node: circleci/node@5
+  snyk: snyk/snyk@1
 
 anchors:
-  node-executor: &node-executor
-    name: node/default
-    tag: '16.14'
   docker-executor: &docker-executor
     name: docker/machine
     dlc: false
@@ -59,6 +57,19 @@ jobs:
             cd tests/
             sudo chown root:root crontab
             TEST_IMAGE=${CIRCLE_PROJECT_REPONAME}:build ./runTests.sh
+
+  snyk-scan:
+    executor: *docker-executor
+    resource_class: medium
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Load docker image
+          command: docker load -i /tmp/workspace/images.tar
+      - snyk/scan:
+          project: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+          docker-image-name: ${CIRCLE_PROJECT_REPONAME}:build
 
   publish-docker:
     executor: *docker-executor
@@ -182,7 +193,8 @@ jobs:
         description: Whether it's a pre-release and not actually release.
         type: boolean
         default: false
-    executor: *node-executor
+    executor:
+      name: node/default
     steps:
       - checkout
       - when:
@@ -230,6 +242,14 @@ workflows:
           prerelease: false
           requires:
             - test
+      - snyk-scan:
+          context: default
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - main
       - publish-docker:
           name: publish-docker-private
           context: default
