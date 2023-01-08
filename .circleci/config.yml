@@ -225,16 +225,15 @@ workflows:
   default:
     jobs:
       - docker/hadolint:
-          name: validate-dockerfile
+          name: lint-dockerfile
           context: default
           dockerfiles: src/Dockerfile
       - build:
           context: default
-          requires:
-            - validate-dockerfile
       - test:
           context: default
           requires:
+            - lint-dockerfile
             - build
       - release:
           name: release
