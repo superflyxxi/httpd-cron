@@ -1,6 +1,3 @@
-touch cron.log
-touch minute.log
-
 log() {
 	echo $(date -Iseconds) "$1"
 }
