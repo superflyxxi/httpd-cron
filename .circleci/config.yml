@@ -198,7 +198,6 @@ workflows:
           context: default
           requires:
             - build
-            - release
       - publish-docker:
           name: publish-docker-private
           context: default
