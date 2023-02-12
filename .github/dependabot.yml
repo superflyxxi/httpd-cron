@@ -10,3 +10,5 @@ updates:
       prefix-development: "fix(ci): "
     reviewers:
       - superflyxxi
+    assignees:
+      - superflyxxi
