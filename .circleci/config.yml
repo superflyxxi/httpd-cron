@@ -199,10 +199,6 @@ workflows:
           requires:
             - build
             - release
-          filters:
-            branches:
-              ignore:
-                - main
       - publish-docker:
           name: publish-docker-private
           context: default
