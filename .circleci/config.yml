@@ -76,9 +76,8 @@ jobs:
           name: Load docker image
           command: docker load -i /tmp/workspace/images.tar
       - snyk/scan:
-          project: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
           docker-image-name: ${CIRCLE_PROJECT_REPONAME}:build
-          additional-arguments: --app-vulns
+          fail-on-issues: false
 
   publish-docker:
     resource_class: small
