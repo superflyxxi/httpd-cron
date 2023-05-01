@@ -1,4 +1,4 @@
-FROM httpd:2.4.56-alpine3.17
+FROM httpd:2.4.57-alpine3.17
 LABEL org.opencontainers.image.authors="SuperFlyXXI <superflyxxi@yahoo.com>"
 ENTRYPOINT ["/entrypoint.sh"]
 
