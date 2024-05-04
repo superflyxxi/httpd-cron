@@ -23,7 +23,7 @@ jobs:
             echo "export CACHE_FROM_IMAGES=${CACHE_FROM_IMAGES}" >> ${BASH_ENV}
             cat ${BASH_ENV}
       - setup_remote_docker:
-          docker_layer_caching: false
+          docker_layer_caching: true
       - docker/check:
           registry: ${PRIVATE_DOCKER_REGISTRY}
           docker-username: PRIVATE_DOCKER_USERNAME
@@ -50,8 +50,7 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/workspace
-      - setup_remote_docker:
-          docker_layer_caching: false
+      - setup_remote_docker
       - run:
           name: Load docker image
           command: docker load -i /tmp/workspace/images.tar
@@ -70,8 +69,7 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/workspace
-      - setup_remote_docker:
-          docker_layer_caching: false
+      - setup_remote_docker
       - run:
           name: Load docker image
           command: docker load -i /tmp/workspace/images.tar
@@ -99,8 +97,7 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/workspace
-      - setup_remote_docker:
-          docker_layer_caching: false
+      - setup_remote_docker
       - run:
           name: Custom enviroment variables
           command: |
