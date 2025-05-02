@@ -2,13 +2,12 @@ version: 2
 
 updates:
   - package-ecosystem: "docker"
-    open-pull-requests-limit: 1
     directory: "/src"
     schedule:
       interval: "monthly"
     commit-message:
-      prefix: "fix: "
-      prefix-development: "fix(ci): "
+      prefix: "fix"
+      prefix-development: "fix(ci)"
     reviewers:
       - superflyxxi
     assignees:
