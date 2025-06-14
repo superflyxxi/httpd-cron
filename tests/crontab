@@ -1,2 +1,2 @@
 # minute hour dayOfMonth monthOfYear (1=mon; 7=sun) dayOfWeek
-*	*	*	*	*	date -Iseconds >> /home/test/minute.log
+* * * * * date -Iseconds >> /home/test/minute.log

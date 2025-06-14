@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [[ -x "/before_entrypoint.sh" ]]; then
 	echo "Executing before entrypoint"
@@ -6,10 +6,10 @@ if [[ -x "/before_entrypoint.sh" ]]; then
 fi
 	
 echo "Starting cron server"
-crond -b -L /var/log/cron.log -l 7
+cron -L 7 -l
 
 echo "Starting httpd server"
 httpd-foreground
 
 # Kill crond
-ps | grep crond | grep -v grep | awk '{print $1}' | xargs kill
+kill $(cat /var/run/crond.pid)

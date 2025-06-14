@@ -13,19 +13,21 @@ log "Running docker"
 docker build -t httpd-cron:test -f- . <<EOF
 FROM ${TEST_IMAGE}
 RUN mkdir -p /home/test
-ADD crontab /etc/crontabs/root
+# Add the file
+ADD crontab /home/test/crontab
+# Ensure cron understands it
+RUN crontab /home/test/crontab
 EOF
 docker run --rm -d --init --name test httpd-cron:test
 
 # 60 minus number of seconds past 00... +  5 seconds for buffer
-SECONDS_TO_SLEEP=$((65 - $(date +%s) % 60))
+SECONDS_TO_SLEEP=$((65 - $(date +%s) % 60 ))
 log "Sleeping for ${SECONDS_TO_SLEEP} second(s)"
 sleep ${SECONDS_TO_SLEEP}s
 
 SECONDS_DOCKER_STOP=$(date +%s)
 docker cp test:/home/test/minute.log ./minute.log
-docker cp test:/var/log/cron.log ./cron.log
-docker stop --time 10 test
+docker stop --timeout 10 test
 SECONDS_DOCKER_STOP=$(($(date +%s) - ${SECONDS_DOCKER_STOP}))
 log "Docker took ${SECONDS_DOCKER_STOP}s to stop"
 
@@ -35,10 +37,7 @@ if [[ ${LINES} -eq 1 ]]; then
 	log "PASS: Perfection (${LINES})"
 else
 	log "FAIL: Expected 1 line, but got ${LINES}"
-	log "Cron logs"
-	cat ./cron.log
 	log "Test results"
 	cat ./minute.log
 	exit 1
 fi
-
