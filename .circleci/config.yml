@@ -4,7 +4,7 @@ version: 2.1
 orbs:
   docker: circleci/docker@3
   node: circleci/node@7
-  snyk: snyk/snyk@1
+  snyk: snyk/snyk@2
 
 jobs:
   build:
