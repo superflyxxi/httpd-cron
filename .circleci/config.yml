@@ -3,7 +3,7 @@ version: 2.1
 # Use a package of configuration called an orb.
 orbs:
   docker: circleci/docker@3
-  node: circleci/node@5
+  node: circleci/node@7
   snyk: snyk/snyk@1
 
 jobs:
