@@ -18,7 +18,7 @@ jobs:
           command: |
             export CACHE_FROM_IMAGES=$(grep "^FROM " src/Dockerfile | sed 's/FROM //g')
             if [[ "<< pipeline.git.branch >>" != "main" ]]; then
-              export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${PRIVATE_DOCKER_REGISTRY}/${PRIVATE_DOCKER_USERNAME}/${CIRCLE_PROJECT_REPONAME}:latest"
+              export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${PRIVATE_DOCKER_REGISTRY}/${CIRCLE_PROJECT_REPONAME}:latest"
             fi
             echo "export CACHE_FROM_IMAGES=${CACHE_FROM_IMAGES}" >> ${BASH_ENV}
             cat ${BASH_ENV}
@@ -112,7 +112,11 @@ jobs:
               export DOCKER_TAGS="${DOCKER_TAGS},main,latest"
             fi
             echo "export DOCKER_TAGS=${DOCKER_TAGS}" >> ${BASH_ENV}
-            echo "export FINAL_IMAGE_NAME=${<< parameters.docker-username-env >>}/${CIRCLE_PROJECT_REPONAME}" >> ${BASH_ENV}
+            if [[ "PRIVATE_DOCKER_USERNAME" == "<< parameters.docker-username-env >>" ]]; then
+              echo "export FINAL_IMAGE_NAME=${CIRCLE_PROJECT_REPONAME}" >> ${BASH_ENV}
+            else
+              echo "export FINAL_IMAGE_NAME=${<< parameters.docker-username-env >>}/${CIRCLE_PROJECT_REPONAME}" >> ${BASH_ENV}
+            fi
             cat ${BASH_ENV}
       - docker/check:
           registry: ${<< parameters.registry-env >>}
