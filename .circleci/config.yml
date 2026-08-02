@@ -16,9 +16,8 @@ jobs:
       - run:
           name: Custom enviroment variables
           command: |
-            export CACHE_FROM_IMAGES=$(grep "^FROM " src/Dockerfile | sed 's/FROM //g')
             if [[ "<< pipeline.git.branch >>" != "main" ]]; then
-              export CACHE_FROM_IMAGES="${CACHE_FROM_IMAGES},${PRIVATE_DOCKER_REGISTRY}/${CIRCLE_PROJECT_REPONAME}:latest"
+              export CACHE_FROM_IMAGES="${PRIVATE_DOCKER_REGISTRY}/${CIRCLE_PROJECT_REPONAME}:latest"
             fi
             echo "export CACHE_FROM_IMAGES=${CACHE_FROM_IMAGES}" >> ${BASH_ENV}
             cat ${BASH_ENV}
@@ -29,12 +28,13 @@ jobs:
           docker_username: PRIVATE_DOCKER_USERNAME
           docker_password: PRIVATE_DOCKER_PASSWORD
       - docker/build:
+          step_name: Build docker image
           docker_context: src/
           path: src/
           image: ${CIRCLE_PROJECT_REPONAME}
           tag: build
           cache_from: ${CACHE_FROM_IMAGES}
-          step_name: Build docker image
+          extra_build_args: --cache-to type=inline
       - run:
           name: Save docker image
           command: docker save -o images.tar ${CIRCLE_PROJECT_REPONAME}:build
